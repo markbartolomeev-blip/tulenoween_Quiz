@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Терминал оплаты</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 16px;
+  }
+  .terminal {
+    width: 100%;
+    max-width: 380px;
+    background: #1a1a1a;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    color: #fff;
+  }
+  .screen {
+    background: #0a1f0a;
+    border-radius: 14px;
+    padding: 20px;
+    border: 2px solid #333;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-family: "Courier New", monospace;
+    box-shadow: inset 0 0 20px rgba(0,255,0,0.1);
+  }
+  .screen .label { color: #4ade80; font-size: 12px; letter-spacing: 2px; opacity: 0.7; }
+  .screen .amount { color: #4ade80; font-size: 42px; font-weight: bold; margin: 8px 0; text-shadow: 0 0 12px rgba(74,222,128,0.6); }
+  .screen .status { color: #86efac; font-size: 14px; margin-top: 10px; min-height: 20px; }
+  .screen .status.error { color: #f87171; }
+  .screen .status.success { color: #4ade80; font-weight: bold; }
+  
+  .card-icon {
+    font-size: 48px;
+    margin: 10px 0;
+    opacity: 0.5;
+    transition: all 0.3s;
+  }
+  .card-icon.active {
+    opacity: 1;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  
+  label { display: block; font-size: 12px; color: #999; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 1px; }
+  input {
+    width: 100%;
+    padding: 16px;
+    font-size: 24px;
+    text-align: right;
+    border-radius: 12px;
+    border: 2px solid #333;
+    background: #2a2a2a;
+    color: #fff;
+    font-family: "Courier New", monospace;
+    outline: none;
+  }
+  input:focus { border-color: #4ade80; }
+  
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .keypad button {
+    padding: 16px;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .keypad button:active { background: #555; }
+  
+  .pay-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #062b0d;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .pay-btn:active { transform: scale(0.97); }
+  .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="terminal">
+  <div class="screen">
+    <div class="label">К ОПЛАТЕ</div>
+    <div class="amount" id="displayAmount">0.00 ₽</div>
+    <div class="card-icon" id="cardIcon">💳</div>
+    <div class="status" id="status">Введите сумму</div>
+  </div>
+
+  <label>Сумма платежа</label>
+  <input type="text" id="amount" inputmode="decimal" placeholder="0.00" value="">
+
+  <div class="keypad">
+    <button data-key="1">1</button>
+    <button data-key="2">2</button>
+    <button data-key="3">3</button>
+    <button data-key="4">4</button>
+    <button data-key="5">5</button>
+    <button data-key="6">6</button>
+    <button data-key="7">7</button>
+    <button data-key="8">8</button>
+    <button data-key="9">9</button>
+    <button data-key=".">.</button>
+    <button data-key="0">0</button>
+    <button data-key="back">⌫</button>
+  </div>
+
+  <button class="pay-btn" id="payBtn" disabled>Приложить карту</button>
+</div>
+
+<script>
+const amountInput = document.getElementById('amount');
+const displayAmount = document.getElementById('displayAmount');
+const statusEl = document.getElementById('status');
+const cardIcon = document.getElementById('cardIcon');
+const payBtn = document.getElementById('payBtn');
+
+let currentAmount = 0;
+let scanController = null;
+let reading = false;
+
+// Обновление дисплея суммы
+function updateAmount() {
+  const raw = amountInput.value.replace(',', '.').trim();
+  const val = parseFloat(raw);
+  currentAmount = isNaN(val) ? 0 : val;
+  displayAmount.textContent = currentAmount.toFixed(2) + ' ₽';
+  
+  // Кнопка активна если сумма > 0 и NFC поддерживается
+  payBtn.disabled = currentAmount <= 0 || !('NDEFReader' in window);
+}
+
+// Виртуальная клавиатура
+document.querySelectorAll('.keypad button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.key;
+    if (key === 'back') {
+      amountInput.value = amountInput.value.slice(0, -1);
+    } else if (key === '.') {
+      if (!amountInput.value.includes('.')) {
+        amountInput.value += amountInput.value === '' ? '0.' : '.';
+      }
+    } else {
+      amountInput.value += key;
+    }
+    updateAmount();
+  });
+});
+
+amountInput.addEventListener('input', updateAmount);
+
+// Проверка поддержки NFC
+if (!('NDEFReader' in window)) {
+  statusEl.textContent = 'NFC недоступен в этом браузере';
+  statusEl.classList.add('error');
+  payBtn.disabled = true;
+  payBtn.textContent = 'NFC не поддерживается';
+}
+
+// Кнопка оплаты — запуск сканирования
+payBtn.addEventListener('click', async () => {
+  if (reading) {
+    // Остановить сканирование
+    if (scanController) scanController.abort();
+    return;
+  }
+  
+  if (currentAmount <= 0) return;
+  
+  try {
+    const ndef = new NDEFReader();
+    scanController = new AbortController();
+    reading = true;
+    
+    statusEl.textContent = 'Поднесите карту к телефону…';
+    statusEl.classList.remove('error', 'success');
+    cardIcon.classList.add('active');
+    payBtn.textContent = 'Отменить';
+    payBtn.style.background = 'linear-gradient(135deg, #f87171, #dc2626)';
+    payBtn.style.color = '#fff';
+    
+    // Запуск сканирования
+    await ndef.scan({ signal: scanController.signal });
+    
+    ndef.onreading = event => {
+      console.log('NFC событие:', event);
+      console.log('Серийный номер:', event.serialNumber);
+      
+      const serial = event.serialNumber || 'неизвестен';
+      const uid = serial.replace(/:/g, '').toUpperCase();
+      
+      // Останавливаем сканирование
+      scanController.abort();
+      reading = false;
+      cardIcon.classList.remove('active');
+      
+      // Показываем успех
+      statusEl.classList.remove('error');
+      statusEl.classList.add('success');
+      statusEl.innerHTML = `✓ Карта: <b>${uid}</b><br>Списано ${currentAmount.toFixed(2)} ₽`;
+      
+      cardIcon.textContent = '✅';
+      
+      payBtn.textContent = 'Приложить карту';
+      payBtn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
+      payBtn.style.color = '#062b0d';
+      
+      // Сбрасываем через 3 секунды
+      setTimeout(() => {
+        cardIcon.textContent = '💳';
+        statusEl.textContent = 'Введите сумму';
+        statusEl.classList.remove('success');
+      }, 3500);
+    };
+    
+    ndef.onreadingerror = () => {
+      statusEl.textContent = 'Ошибка чтения. Попробуйте снова';
+      statusEl.classList.add('error');
+    };
+    
+  } catch (err) {
+    console.error(err);
+    reading = false;
+    cardIcon.classList.remove('active');
+    payBtn.textContent = 'Приложить карту';
+    payBtn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
+    payBtn.style.color = '#062b0d';
+    
+    if (err.name === 'AbortError') {
+      statusEl.textContent = 'Сканирование отменено';
+    } else {
+      statusEl.textContent = 'Ошибка: ' + err.message;
+      statusEl.classList.add('error');
+    }
+  }
+});
+
+updateAmount();
+</script>
+</body>
+</html>
