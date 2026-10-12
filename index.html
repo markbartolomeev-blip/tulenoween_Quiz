@@ -348,7 +348,7 @@
             <div class="ctrl-title">ПРАВИЛА</div>
             <div class="ctrl-line"><span>1.</span> Всего 10 вопросов</div>
             <div class="ctrl-line"><span>2.</span> У каждого вопроса разная сложность</div>
-            <div class="ctrl-line"><span>3.</span> Всего 3 сложности: легкая, средняя, сложная</div>
+            <div class="ctrl-line"><span>3.</span> Всего 3 сложности: лёгкая, средняя, сложная</div>
             <div class="ctrl-line"><span>4.</span> Последний вопрос самый сложный</div>
             <div class="ctrl-line"><span>5.</span> У всех вопросов только один правильный вариант</div>
         </div>
@@ -389,6 +389,8 @@
 
 <script>
     // ===== ВОПРОСЫ =====
+    // correct — индекс правильного ответа в исходном массиве answers.
+    // При отрисовке ответы перемешиваются, а правильный индекс пересчитывается.
     const QUESTIONS = [
         // ---- 3 ЛЁГКИХ ----
         {
@@ -463,6 +465,18 @@
     let score = 0;
     let answered = false;
     let gameActive = false;
+    let shuffledCorrectIndex = 0;   // правильный индекс после перемешивания
+    let shuffledAnswers = [];        // перемешанные ответы текущего вопроса
+
+    // ===== ПЕРЕМЕШИВАНИЕ (Фишер-Йетс) =====
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
 
     // ===== СТАРТ =====
     function startGame() {
@@ -515,6 +529,7 @@
 
         document.getElementById('q-num').textContent = (currentQ + 1);
 
+        // Сложность
         const diffEl = document.getElementById('difficulty');
         diffEl.className = 'difficulty';
         if (q.difficulty === 'easy') {
@@ -531,11 +546,18 @@
             diffEl.classList.add('final');
         }
 
+        // Вопрос
         document.getElementById('question-text').textContent = q.question;
 
+        // === ПЕРЕМЕШИВАЕМ ОТВЕТЫ ===
+        const correctText = q.answers[q.correct];
+        shuffledAnswers = shuffle(q.answers);
+        shuffledCorrectIndex = shuffledAnswers.indexOf(correctText);
+
+        // Отрисовка ответов
         const answersEl = document.getElementById('answers');
         answersEl.innerHTML = '';
-        q.answers.forEach((ans, i) => {
+        shuffledAnswers.forEach((ans, i) => {
             const btn = document.createElement('button');
             btn.classList.add('answer-btn');
             btn.textContent = ans;
@@ -553,8 +575,7 @@
         if (answered || !gameActive) return;
         answered = true;
 
-        const q = QUESTIONS[currentQ];
-        const isCorrect = index === q.correct;
+        const isCorrect = index === shuffledCorrectIndex;
 
         const allBtns = document.querySelectorAll('.answer-btn');
         allBtns.forEach(b => b.disabled = true);
@@ -565,7 +586,8 @@
             document.getElementById('score').textContent = score;
         } else {
             btn.classList.add('wrong');
-            allBtns[q.correct].classList.add('correct');
+            // Подсвечиваем правильный (с учётом перемешивания)
+            allBtns[shuffledCorrectIndex].classList.add('correct');
         }
 
         markDot(currentQ, isCorrect);
