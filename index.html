@@ -1,276 +1,631 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Терминал оплаты</title>
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    padding: 16px;
-  }
-  .terminal {
-    width: 100%;
-    max-width: 380px;
-    background: #1a1a1a;
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    color: #fff;
-  }
-  .screen {
-    background: #0a1f0a;
-    border-radius: 14px;
-    padding: 20px;
-    border: 2px solid #333;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    font-family: "Courier New", monospace;
-    box-shadow: inset 0 0 20px rgba(0,255,0,0.1);
-  }
-  .screen .label { color: #4ade80; font-size: 12px; letter-spacing: 2px; opacity: 0.7; }
-  .screen .amount { color: #4ade80; font-size: 42px; font-weight: bold; margin: 8px 0; text-shadow: 0 0 12px rgba(74,222,128,0.6); }
-  .screen .status { color: #86efac; font-size: 14px; margin-top: 10px; min-height: 20px; }
-  .screen .status.error { color: #f87171; }
-  .screen .status.success { color: #4ade80; font-weight: bold; }
-  
-  .card-icon {
-    font-size: 48px;
-    margin: 10px 0;
-    opacity: 0.5;
-    transition: all 0.3s;
-  }
-  .card-icon.active {
-    opacity: 1;
-    animation: pulse 1s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-  }
-  
-  label { display: block; font-size: 12px; color: #999; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 1px; }
-  input {
-    width: 100%;
-    padding: 16px;
-    font-size: 24px;
-    text-align: right;
-    border-radius: 12px;
-    border: 2px solid #333;
-    background: #2a2a2a;
-    color: #fff;
-    font-family: "Courier New", monospace;
-    outline: none;
-  }
-  input:focus { border-color: #4ade80; }
-  
-  .keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .keypad button {
-    padding: 16px;
-    font-size: 20px;
-    border: none;
-    border-radius: 10px;
-    background: #333;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .keypad button:active { background: #555; }
-  
-  .pay-btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #4ade80, #22c55e);
-    color: #062b0d;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: transform 0.1s, opacity 0.2s;
-  }
-  .pay-btn:active { transform: scale(0.97); }
-  .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хэллоуин: Викторина</title>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Russo One', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: #2a0a38;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            padding: 10px;
+        }
+
+        #bg-spiral {
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: repeating-radial-gradient(
+                circle at center,
+                #f26d21 0px, #f26d21 60px,
+                #572a7c 60px, #572a7c 120px
+            );
+            animation: spin 25s linear infinite;
+            filter: blur(12px);
+            z-index: -1;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .game-container {
+            background: rgba(25, 0, 40, 0.93);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(242,109,33,0.4);
+            text-align: center;
+            max-width: 620px;
+            width: 100%;
+            backdrop-filter: blur(6px);
+            border: 3px solid #f26d21;
+            z-index: 1;
+            max-height: 96vh;
+            overflow-y: auto;
+        }
+
+        /* СТАРТОВЫЙ ЭКРАН */
+        .start-screen {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 16px; padding: 12px 8px;
+            animation: fadeIn 0.6s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .start-screen h1 {
+            color: #f26d21; font-size: 32px;
+            text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000;
+            letter-spacing: 2px;
+            text-align: center;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        @keyframes titleGlow {
+            from { text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000, 0 0 10px #f26d21; }
+            to { text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000, 0 0 25px #f26d21, 0 0 35px #f26d21; }
+        }
+        .subtitle { color: #ccc; font-size: 14px; letter-spacing: 1px; text-align: center; }
+
+        .controls-box {
+            background: rgba(87, 42, 124, 0.4);
+            border: 2px dashed #f26d21;
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 6px;
+            max-width: 500px;
+            text-align: left;
+        }
+        .controls-box .ctrl-title {
+            color: #f26d21; font-size: 15px;
+            letter-spacing: 1px; margin-bottom: 4px;
+            text-shadow: 1px 1px 0 #000;
+            text-align: center;
+        }
+        .controls-box .ctrl-line {
+            color: #fff; font-size: 12px;
+            line-height: 1.6; letter-spacing: 0.5px;
+        }
+        .controls-box .ctrl-line span { color: #f26d21; }
+
+        .btn {
+            font-family: 'Russo One', sans-serif;
+            font-size: 16px;
+            background-color: #572a7c;
+            color: #f26d21;
+            border: 3px solid #f26d21;
+            padding: 12px 26px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 0 #000;
+            letter-spacing: 1px;
+            touch-action: manipulation;
+        }
+        .btn:hover {
+            background-color: #f26d21; color: #572a7c;
+            border-color: #572a7c;
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 5px 20px rgba(242,109,33,0.7);
+        }
+        .btn:active { transform: scale(0.95); }
+
+        /* ИГРОВОЕ ПОЛЕ */
+        .game-area {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .top-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 13px;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+        .info-item {
+            background: rgba(87,42,124,0.5);
+            border: 2px solid rgba(242,109,33,0.5);
+            border-radius: 10px;
+            padding: 6px 10px;
+            flex: 1;
+            text-align: center;
+        }
+        .info-item b { color: #f26d21; }
+
+        .difficulty {
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-align: center;
+            color: #fff;
+            padding: 4px 0;
+        }
+        .difficulty.easy { color: #4caf50; text-shadow: 0 0 8px #4caf50; }
+        .difficulty.medium { color: #ffcc00; text-shadow: 0 0 8px #ffcc00; }
+        .difficulty.hard { color: #ff5555; text-shadow: 0 0 8px #ff5555; }
+        .difficulty.final { color: #f26d21; text-shadow: 0 0 12px #f26d21; animation: finalPulse 1.2s ease-in-out infinite alternate; }
+        @keyframes finalPulse {
+            from { text-shadow: 0 0 6px #f26d21; }
+            to { text-shadow: 0 0 20px #f26d21, 0 0 30px #ffcc66; }
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(87,42,124,0.6);
+            border: 2px solid rgba(242,109,33,0.5);
+            transition: all 0.3s ease;
+        }
+        .dot.current {
+            background: #f26d21;
+            box-shadow: 0 0 12px #f26d21;
+            transform: scale(1.25);
+        }
+        .dot.correct {
+            background: #4caf50;
+            border-color: #4caf50;
+            box-shadow: 0 0 8px #4caf50;
+        }
+        .dot.wrong {
+            background: #ff3333;
+            border-color: #ff3333;
+            box-shadow: 0 0 8px #ff3333;
+        }
+
+        .question-box {
+            background: rgba(15, 2, 25, 0.85);
+            border: 3px solid #f26d21;
+            border-radius: 16px;
+            padding: 18px 16px;
+            box-shadow: inset 0 0 20px rgba(242,109,33,0.2);
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .question-text {
+            color: #fff;
+            font-size: 17px;
+            letter-spacing: 1px;
+            line-height: 1.5;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .answer-btn {
+            font-family: 'Russo One', sans-serif;
+            font-size: 15px;
+            background: rgba(87, 42, 124, 0.6);
+            color: #fff;
+            border: 3px solid rgba(242, 109, 33, 0.5);
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 1px #000;
+            touch-action: manipulation;
+        }
+        .answer-btn:hover:not(:disabled) {
+            background: rgba(242, 109, 33, 0.3);
+            border-color: #f26d21;
+            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(242,109,33,0.5);
+        }
+        .answer-btn:disabled { cursor: default; }
+
+        .answer-btn.correct {
+            background: rgba(76, 175, 80, 0.35);
+            border-color: #4caf50;
+            color: #b8ffbb;
+            box-shadow: 0 0 20px rgba(76,175,80,0.6);
+            animation: correctPulse 0.5s ease;
+        }
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .answer-btn.wrong {
+            background: rgba(255, 51, 51, 0.3);
+            border-color: #ff3333;
+            color: #ffb8b8;
+            box-shadow: 0 0 20px rgba(255,51,51,0.5);
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .next-btn-wrap {
+            display: flex;
+            justify-content: center;
+            min-height: 48px;
+        }
+        .next-btn {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .next-btn.show { display: inline-block; }
+
+        /* ФИНАЛЬНЫЙ ЭКРАН */
+        .end-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 22px 10px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+        .end-screen h1 {
+            color: #f26d21; font-size: 26px;
+            text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000;
+            letter-spacing: 1px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .end-screen h1.lose {
+            color: #ff5555;
+            text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000, 0 0 15px #ff5555;
+        }
+        .end-screen p {
+            color: #fff; font-size: 16px;
+            text-shadow: 1px 1px 2px #000;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .end-screen p.sub-text { color: #ccc; font-size: 14px; }
+        .end-screen p.final-text {
+            color: #f26d21; font-size: 18px;
+            text-shadow: 1px 1px 0 #000, 0 0 10px #f26d21;
+        }
+        .end-screen .score-big {
+            color: #f26d21;
+            font-size: 42px;
+            text-shadow: 0 0 20px #f26d21, 2px 2px 0 #000;
+            margin: 6px 0;
+        }
+
+        @media (max-width: 600px) {
+            .start-screen h1 { font-size: 22px; }
+            .subtitle { font-size: 12px; }
+            .controls-box { padding: 10px 14px; }
+            .controls-box .ctrl-title { font-size: 13px; }
+            .controls-box .ctrl-line { font-size: 11px; }
+            .btn { font-size: 14px; padding: 10px 20px; }
+            .question-text { font-size: 14px; }
+            .answer-btn { font-size: 13px; padding: 12px 14px; }
+            .top-info { font-size: 11px; }
+            .info-item { padding: 4px 6px; }
+            .end-screen h1 { font-size: 19px; }
+            .end-screen p { font-size: 13px; }
+            .end-screen p.final-text { font-size: 14px; }
+            .end-screen .score-big { font-size: 34px; }
+            .dot { width: 12px; height: 12px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="terminal">
-  <div class="screen">
-    <div class="label">К ОПЛАТЕ</div>
-    <div class="amount" id="displayAmount">0.00 ₽</div>
-    <div class="card-icon" id="cardIcon">💳</div>
-    <div class="status" id="status">Введите сумму</div>
-  </div>
+<div id="bg-spiral"></div>
 
-  <label>Сумма платежа</label>
-  <input type="text" id="amount" inputmode="decimal" placeholder="0.00" value="">
+<div class="game-container">
 
-  <div class="keypad">
-    <button data-key="1">1</button>
-    <button data-key="2">2</button>
-    <button data-key="3">3</button>
-    <button data-key="4">4</button>
-    <button data-key="5">5</button>
-    <button data-key="6">6</button>
-    <button data-key="7">7</button>
-    <button data-key="8">8</button>
-    <button data-key="9">9</button>
-    <button data-key=".">.</button>
-    <button data-key="0">0</button>
-    <button data-key="back">⌫</button>
-  </div>
+    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <div class="start-screen" id="start-screen">
+        <h1>Викторина по Хэллоуину</h1>
+        <p class="subtitle">10 вопросов нарастающей сложности</p>
+        <div class="controls-box">
+            <div class="ctrl-title">ПРАВИЛА</div>
+            <div class="ctrl-line"><span>1.</span> Всего 10 вопросов, у каждого 3 варианта ответа</div>
+            <div class="ctrl-line"><span>2.</span> Первые 3 — лёгкие, следующие 3 — средние</div>
+            <div class="ctrl-line"><span>3.</span> Потом 3 сложных и 1 самый сложный</div>
+            <div class="ctrl-line"><span>4.</span> Выбери один ответ — правильный подсветится зелёным</div>
+            <div class="ctrl-line"><span>5.</span> В конце — результат: сколько правильных из 10</div>
+        </div>
+        <button class="btn" onclick="startGame()">Начать викторину</button>
+    </div>
 
-  <button class="pay-btn" id="payBtn" disabled>Приложить карту</button>
+    <!-- ИГРОВОЕ ПОЛЕ -->
+    <div class="game-area" id="game-area">
+        <div class="top-info">
+            <div class="info-item">Вопрос: <b><span id="q-num">1</span>/10</b></div>
+            <div class="info-item">Правильных: <b><span id="score">0</span></b></div>
+        </div>
+
+        <div class="progress-dots" id="progress-dots"></div>
+
+        <div class="difficulty" id="difficulty">ЛЁГКИЙ</div>
+
+        <div class="question-box">
+            <div class="question-text" id="question-text">...</div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="next-btn-wrap">
+            <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">Дальше →</button>
+        </div>
+    </div>
+
+    <!-- ФИНАЛЬНЫЙ ЭКРАН -->
+    <div class="end-screen" id="end-screen">
+        <h1 id="end-title">ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ!</h1>
+        <p class="sub-text" id="end-sub">можешь спать спокойно... Пока...</p>
+        <div class="score-big" id="final-score">0/10</div>
+        <p class="final-text" id="end-final">Не забудь отправить скрин в группу!</p>
+    </div>
+
 </div>
 
 <script>
-const amountInput = document.getElementById('amount');
-const displayAmount = document.getElementById('displayAmount');
-const statusEl = document.getElementById('status');
-const cardIcon = document.getElementById('cardIcon');
-const payBtn = document.getElementById('payBtn');
+    // ===== ВОПРОСЫ =====
+    const QUESTIONS = [
+        // ---- 3 ЛЁГКИХ ----
+        {
+            difficulty: 'easy',
+            question: 'Какое животное считается символом Хэллоуина и часто сопровождает ведьм?',
+            answers: ['Кошка', 'Собака', 'Сова'],
+            correct: 0
+        },
+        {
+            difficulty: 'easy',
+            question: 'Что дети говорят, когда стучат в двери на Хэллоуин?',
+            answers: ['Сладость или гадость!', 'С днём рождения!', 'Откройте, полиция!'],
+            correct: 0
+        },
+        {
+            difficulty: 'easy',
+            question: 'Какого числа отмечается Хэллоуин?',
+            answers: ['31 октября', '1 ноября', '30 сентября'],
+            correct: 0
+        },
 
-let currentAmount = 0;
-let scanController = null;
-let reading = false;
+        // ---- 3 СРЕДНИХ ----
+        {
+            difficulty: 'medium',
+            question: 'Как называется традиционный фонарь из тыквы на Хэллоуин?',
+            answers: ['Фонарь Джека', 'Светильник Сэма', 'Тыква Мэри'],
+            correct: 0
+        },
+        {
+            difficulty: 'medium',
+            question: 'От какого древнего кельтского праздника произошёл Хэллоуин?',
+            answers: ['Самайн', 'Йоль', 'Белтейн'],
+            correct: 0
+        },
+        {
+            difficulty: 'medium',
+            question: 'Какое дерево традиционно ассоциируется с ведьмами и Хэллоуином?',
+            answers: ['Дуб', 'Берёза', 'Ива'],
+            correct: 0
+        },
 
-// Обновление дисплея суммы
-function updateAmount() {
-  const raw = amountInput.value.replace(',', '.').trim();
-  const val = parseFloat(raw);
-  currentAmount = isNaN(val) ? 0 : val;
-  displayAmount.textContent = currentAmount.toFixed(2) + ' ₽';
-  
-  // Кнопка активна если сумма > 0 и NFC поддерживается
-  payBtn.disabled = currentAmount <= 0 || !('NDEFReader' in window);
-}
+        // ---- 3 СЛОЖНЫХ ----
+        {
+            difficulty: 'hard',
+            question: 'Что, согласно кельтским поверьям, происходило в ночь Самайна с границей между мирами живых и мёртвых?',
+            answers: ['Она стиралась', 'Она становилась прочнее', 'Она перемещалась в другое место'],
+            correct: 0
+        },
+        {
+            difficulty: 'hard',
+            question: 'Из какого овоща изначально делали «фонари Джека» в Ирландии до переезда традиции в Америку?',
+            answers: ['Из репы и свёклы', 'Из капусты', 'Из картофеля'],
+            correct: 0
+        },
+        {
+            difficulty: 'hard',
+            question: 'Как называлась традиция в средневековой Европе, когда люди ходили от дома к дому и выпрашивали еду в обмен на молитвы за умерших?',
+            answers: ['Souling', 'Trick-or-treating', 'Guising'],
+            correct: 0
+        },
 
-// Виртуальная клавиатура
-document.querySelectorAll('.keypad button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const key = btn.dataset.key;
-    if (key === 'back') {
-      amountInput.value = amountInput.value.slice(0, -1);
-    } else if (key === '.') {
-      if (!amountInput.value.includes('.')) {
-        amountInput.value += amountInput.value === '' ? '0.' : '.';
-      }
-    } else {
-      amountInput.value += key;
+        // ---- 1 САМЫЙ СЛОЖНЫЙ ----
+        {
+            difficulty: 'final',
+            question: 'Как в ирландском фольклоре звали кузнеца, который обманул дьявола и после смерти не попал ни в рай, ни в ад — отсюда и пошла традиция «фонаря Джека»?',
+            answers: ['Stingy Jack', 'Old Scratch', 'Jack O\'Lantern'],
+            correct: 0
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let answered = false;
+    let gameActive = false;
+
+    // ===== СТАРТ =====
+    function startGame() {
+        currentQ = 0;
+        score = 0;
+        answered = false;
+        gameActive = true;
+
+        document.getElementById('score').textContent = '0';
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'none';
+        document.getElementById('end-title').classList.remove('lose');
+        document.getElementById('game-area').style.display = 'flex';
+
+        buildDots();
+        renderQuestion();
     }
-    updateAmount();
-  });
-});
 
-amountInput.addEventListener('input', updateAmount);
-
-// Проверка поддержки NFC
-if (!('NDEFReader' in window)) {
-  statusEl.textContent = 'NFC недоступен в этом браузере';
-  statusEl.classList.add('error');
-  payBtn.disabled = true;
-  payBtn.textContent = 'NFC не поддерживается';
-}
-
-// Кнопка оплаты — запуск сканирования
-payBtn.addEventListener('click', async () => {
-  if (reading) {
-    // Остановить сканирование
-    if (scanController) scanController.abort();
-    return;
-  }
-  
-  if (currentAmount <= 0) return;
-  
-  try {
-    const ndef = new NDEFReader();
-    scanController = new AbortController();
-    reading = true;
-    
-    statusEl.textContent = 'Поднесите карту к телефону…';
-    statusEl.classList.remove('error', 'success');
-    cardIcon.classList.add('active');
-    payBtn.textContent = 'Отменить';
-    payBtn.style.background = 'linear-gradient(135deg, #f87171, #dc2626)';
-    payBtn.style.color = '#fff';
-    
-    // Запуск сканирования
-    await ndef.scan({ signal: scanController.signal });
-    
-    ndef.onreading = event => {
-      console.log('NFC событие:', event);
-      console.log('Серийный номер:', event.serialNumber);
-      
-      const serial = event.serialNumber || 'неизвестен';
-      const uid = serial.replace(/:/g, '').toUpperCase();
-      
-      // Останавливаем сканирование
-      scanController.abort();
-      reading = false;
-      cardIcon.classList.remove('active');
-      
-      // Показываем успех
-      statusEl.classList.remove('error');
-      statusEl.classList.add('success');
-      statusEl.innerHTML = `✓ Карта: <b>${uid}</b><br>Списано ${currentAmount.toFixed(2)} ₽`;
-      
-      cardIcon.textContent = '✅';
-      
-      payBtn.textContent = 'Приложить карту';
-      payBtn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-      payBtn.style.color = '#062b0d';
-      
-      // Сбрасываем через 3 секунды
-      setTimeout(() => {
-        cardIcon.textContent = '💳';
-        statusEl.textContent = 'Введите сумму';
-        statusEl.classList.remove('success');
-      }, 3500);
-    };
-    
-    ndef.onreadingerror = () => {
-      statusEl.textContent = 'Ошибка чтения. Попробуйте снова';
-      statusEl.classList.add('error');
-    };
-    
-  } catch (err) {
-    console.error(err);
-    reading = false;
-    cardIcon.classList.remove('active');
-    payBtn.textContent = 'Приложить карту';
-    payBtn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-    payBtn.style.color = '#062b0d';
-    
-    if (err.name === 'AbortError') {
-      statusEl.textContent = 'Сканирование отменено';
-    } else {
-      statusEl.textContent = 'Ошибка: ' + err.message;
-      statusEl.classList.add('error');
+    // ===== ТОЧКИ ПРОГРЕССА =====
+    function buildDots() {
+        const wrap = document.getElementById('progress-dots');
+        wrap.innerHTML = '';
+        for (let i = 0; i < QUESTIONS.length; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            dot.dataset.index = i;
+            wrap.appendChild(dot);
+        }
     }
-  }
-});
 
-updateAmount();
+    function updateDots() {
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach((dot, i) => {
+            dot.classList.remove('current');
+            if (i === currentQ) dot.classList.add('current');
+        });
+    }
+
+    function markDot(index, isCorrect) {
+        const dot = document.querySelector(`.dot[data-index="${index}"]`);
+        if (!dot) return;
+        dot.classList.remove('current');
+        dot.classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+
+    // ===== ОТРИСОВКА ВОПРОСА =====
+    function renderQuestion() {
+        const q = QUESTIONS[currentQ];
+        answered = false;
+
+        document.getElementById('q-num').textContent = (currentQ + 1);
+
+        const diffEl = document.getElementById('difficulty');
+        diffEl.className = 'difficulty';
+        if (q.difficulty === 'easy') {
+            diffEl.textContent = 'ЛЁГКИЙ';
+            diffEl.classList.add('easy');
+        } else if (q.difficulty === 'medium') {
+            diffEl.textContent = 'СРЕДНИЙ';
+            diffEl.classList.add('medium');
+        } else if (q.difficulty === 'hard') {
+            diffEl.textContent = 'СЛОЖНЫЙ';
+            diffEl.classList.add('hard');
+        } else {
+            diffEl.textContent = 'САМЫЙ СЛОЖНЫЙ';
+            diffEl.classList.add('final');
+        }
+
+        document.getElementById('question-text').textContent = q.question;
+
+        const answersEl = document.getElementById('answers');
+        answersEl.innerHTML = '';
+        q.answers.forEach((ans, i) => {
+            const btn = document.createElement('button');
+            btn.classList.add('answer-btn');
+            btn.textContent = ans;
+            btn.dataset.index = i;
+            btn.addEventListener('click', () => selectAnswer(i, btn));
+            answersEl.appendChild(btn);
+        });
+
+        document.getElementById('next-btn').classList.remove('show');
+        updateDots();
+    }
+
+    // ===== ВЫБОР ОТВЕТА =====
+    function selectAnswer(index, btn) {
+        if (answered || !gameActive) return;
+        answered = true;
+
+        const q = QUESTIONS[currentQ];
+        const isCorrect = index === q.correct;
+
+        const allBtns = document.querySelectorAll('.answer-btn');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score++;
+            document.getElementById('score').textContent = score;
+        } else {
+            btn.classList.add('wrong');
+            allBtns[q.correct].classList.add('correct');
+        }
+
+        markDot(currentQ, isCorrect);
+
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.classList.add('show');
+        if (currentQ === QUESTIONS.length - 1) {
+            nextBtn.textContent = 'Результат →';
+        } else {
+            nextBtn.textContent = 'Дальше →';
+        }
+    }
+
+    // ===== СЛЕДУЮЩИЙ ВОПРОС =====
+    function nextQuestion() {
+        if (!answered) return;
+
+        if (currentQ < QUESTIONS.length - 1) {
+            currentQ++;
+            renderQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    // ===== ФИНАЛ =====
+    function endGame() {
+        gameActive = false;
+        document.getElementById('final-score').textContent = score + '/' + QUESTIONS.length;
+
+        const title = document.getElementById('end-title');
+        const sub = document.getElementById('end-sub');
+        const finalText = document.getElementById('end-final');
+
+        if (score === QUESTIONS.length) {
+            title.textContent = 'ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ ИДЕАЛЬНО!';
+            sub.textContent = 'можешь спать спокойно... Пока...';
+            finalText.textContent = 'Не забудь отправить скрин в группу!';
+        } else if (score >= 7) {
+            title.textContent = 'ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ!';
+            sub.textContent = 'можешь спать спокойно... Пока...';
+            finalText.textContent = 'Не забудь отправить скрин в группу!';
+        } else {
+            title.textContent = 'ТЫ НЕ ПРОШЁЛ (-А) ВИКТОРИНУ...';
+            title.classList.add('lose');
+            sub.textContent = 'Попробуй ещё раз — теперь ты знаешь ответы!';
+            finalText.textContent = 'Обнови страницу и попробуй снова';
+        }
+
+        setTimeout(() => {
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+        }, 500);
+    }
+
+    window.onload = () => {
+        document.getElementById('game-area').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'none';
+    };
 </script>
+
 </body>
 </html>
