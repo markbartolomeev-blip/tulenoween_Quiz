@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Хэллоуин: Викторина</title>
+    <title>Хэллоуин: Логическая Загадка</title>
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,7 +43,7 @@
 
         .game-container {
             background: rgba(25, 0, 40, 0.93);
-            padding: 20px;
+            padding: 22px;
             border-radius: 20px;
             box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(242,109,33,0.4);
             text-align: center;
@@ -67,7 +67,7 @@
             to { opacity: 1; transform: scale(1); }
         }
         .start-screen h1 {
-            color: #f26d21; font-size: 32px;
+            color: #f26d21; font-size: 30px;
             text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000;
             letter-spacing: 2px;
             text-align: center;
@@ -85,7 +85,7 @@
             border-radius: 14px;
             padding: 14px 18px;
             display: flex; flex-direction: column; gap: 6px;
-            max-width: 500px;
+            max-width: 520px;
             text-align: left;
         }
         .controls-box .ctrl-title {
@@ -114,13 +114,14 @@
             letter-spacing: 1px;
             touch-action: manipulation;
         }
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             background-color: #f26d21; color: #572a7c;
             border-color: #572a7c;
             transform: scale(1.08) translateY(-2px);
             box-shadow: 0 5px 20px rgba(242,109,33,0.7);
         }
-        .btn:active { transform: scale(0.95); }
+        .btn:active:not(:disabled) { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* ИГРОВОЕ ПОЛЕ */
         .game-area {
@@ -130,152 +131,130 @@
             animation: fadeIn 0.5s ease forwards;
         }
 
-        .top-info {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 13px;
-            color: #fff;
+        .riddle-title {
+            color: #f26d21;
+            font-size: 18px;
             letter-spacing: 1px;
-        }
-        .info-item {
-            background: rgba(87,42,124,0.5);
-            border: 2px solid rgba(242,109,33,0.5);
-            border-radius: 10px;
-            padding: 6px 10px;
-            flex: 1;
+            text-shadow: 1px 1px 0 #000, 0 0 10px #f26d21;
             text-align: center;
         }
-        .info-item b { color: #f26d21; }
 
-        .difficulty {
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-align: center;
-            color: #fff;
-            padding: 4px 0;
-        }
-        .difficulty.easy { color: #4caf50; text-shadow: 0 0 8px #4caf50; }
-        .difficulty.medium { color: #ffcc00; text-shadow: 0 0 8px #ffcc00; }
-        .difficulty.hard { color: #ff5555; text-shadow: 0 0 8px #ff5555; }
-        .difficulty.final { color: #f26d21; text-shadow: 0 0 12px #f26d21; animation: finalPulse 1.2s ease-in-out infinite alternate; }
-        @keyframes finalPulse {
-            from { text-shadow: 0 0 6px #f26d21; }
-            to { text-shadow: 0 0 20px #f26d21, 0 0 30px #ffcc66; }
-        }
-
-        .progress-dots {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: rgba(87,42,124,0.6);
-            border: 2px solid rgba(242,109,33,0.5);
-            transition: all 0.3s ease;
-        }
-        .dot.current {
-            background: #f26d21;
-            box-shadow: 0 0 12px #f26d21;
-            transform: scale(1.25);
-        }
-        .dot.correct {
-            background: #4caf50;
-            border-color: #4caf50;
-            box-shadow: 0 0 8px #4caf50;
-        }
-        .dot.wrong {
-            background: #ff3333;
-            border-color: #ff3333;
-            box-shadow: 0 0 8px #ff3333;
-        }
-
-        .question-box {
+        .riddle-text {
             background: rgba(15, 2, 25, 0.85);
             border: 3px solid #f26d21;
             border-radius: 16px;
             padding: 18px 16px;
             box-shadow: inset 0 0 20px rgba(242,109,33,0.2);
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .question-text {
             color: #fff;
-            font-size: 17px;
-            letter-spacing: 1px;
-            line-height: 1.5;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            line-height: 1.7;
+            text-align: left;
             text-shadow: 1px 1px 2px #000;
         }
+        .riddle-text .highlight { color: #f26d21; }
+        .riddle-text .clue {
+            display: block;
+            margin-top: 6px;
+            padding-left: 8px;
+            border-left: 3px solid #572a7c;
+            color: #ddd;
+            font-size: 13px;
+        }
 
-        .answers {
+        /* Строки персонажей */
+        .person-row {
+            background: rgba(87, 42, 124, 0.35);
+            border: 2px solid rgba(242, 109, 33, 0.4);
+            border-radius: 12px;
+            padding: 12px 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            transition: border-color 0.3s ease;
         }
-        .answer-btn {
-            font-family: 'Russo One', sans-serif;
+        .person-row.correct-row {
+            border-color: #4caf50;
+            box-shadow: 0 0 15px rgba(76,175,80,0.5);
+        }
+        .person-row.wrong-row {
+            border-color: #ff3333;
+            box-shadow: 0 0 15px rgba(255,51,51,0.5);
+        }
+
+        .person-name {
+            color: #f26d21;
             font-size: 15px;
-            background: rgba(87, 42, 124, 0.6);
-            color: #fff;
-            border: 3px solid rgba(242, 109, 33, 0.5);
-            padding: 14px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 0 #000;
             text-align: left;
+        }
+
+        .costume-options {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .costume-btn {
+            flex: 1;
+            font-family: 'Russo One', sans-serif;
+            font-size: 13px;
+            background: rgba(15, 2, 25, 0.7);
+            color: #ccc;
+            border: 2px solid rgba(242,109,33,0.5);
+            padding: 10px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
             letter-spacing: 0.5px;
             text-shadow: 1px 1px 1px #000;
             touch-action: manipulation;
         }
-        .answer-btn:hover:not(:disabled) {
+        .costume-btn:hover:not(:disabled) {
+            border-color: #f26d21;
+            color: #f26d21;
+            transform: translateY(-2px);
+        }
+        .costume-btn.selected {
             background: rgba(242, 109, 33, 0.3);
             border-color: #f26d21;
-            transform: translateX(5px);
-            box-shadow: 0 0 15px rgba(242,109,33,0.5);
+            color: #f26d21;
+            box-shadow: 0 0 12px rgba(242,109,33,0.6);
+            transform: scale(1.03);
         }
-        .answer-btn:disabled { cursor: default; }
-
-        .answer-btn.correct {
-            background: rgba(76, 175, 80, 0.35);
+        .costume-btn.correct {
+            background: rgba(76, 175, 80, 0.4);
             border-color: #4caf50;
             color: #b8ffbb;
-            box-shadow: 0 0 20px rgba(76,175,80,0.6);
-            animation: correctPulse 0.5s ease;
+            box-shadow: 0 0 15px rgba(76,175,80,0.7);
         }
-        @keyframes correctPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
-        .answer-btn.wrong {
-            background: rgba(255, 51, 51, 0.3);
+        .costume-btn.wrong {
+            background: rgba(255, 51, 51, 0.35);
             border-color: #ff3333;
             color: #ffb8b8;
-            box-shadow: 0 0 20px rgba(255,51,51,0.5);
+            box-shadow: 0 0 15px rgba(255,51,51,0.7);
             animation: shake 0.4s ease;
         }
+        .costume-btn:disabled { cursor: default; }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
-        .next-btn-wrap {
-            display: flex;
-            justify-content: center;
-            min-height: 48px;
+        .hint-msg {
+            min-height: 20px;
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #f26d21;
+            text-shadow: 1px 1px 0 #000;
+            transition: opacity 0.3s ease;
+            text-align: center;
         }
-        .next-btn {
-            display: none;
-            animation: fadeIn 0.4s ease forwards;
-        }
-        .next-btn.show { display: inline-block; }
+        .hint-msg.warn { color: #ff5555; }
+        .hint-msg.good { color: #4caf50; }
 
         /* ФИНАЛЬНЫЙ ЭКРАН */
         .end-screen {
@@ -287,15 +266,11 @@
             animation: fadeIn 0.8s ease forwards;
         }
         .end-screen h1 {
-            color: #f26d21; font-size: 26px;
+            color: #f26d21; font-size: 24px;
             text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000;
             letter-spacing: 1px;
             text-align: center;
             line-height: 1.3;
-        }
-        .end-screen h1.lose {
-            color: #ff5555;
-            text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000, 0 0 15px #ff5555;
         }
         .end-screen p {
             color: #fff; font-size: 16px;
@@ -308,13 +283,21 @@
             color: #f26d21; font-size: 18px;
             text-shadow: 1px 1px 0 #000, 0 0 10px #f26d21;
         }
-        .end-screen .score-big {
-            color: #f26d21;
-            font-size: 42px;
-            text-shadow: 0 0 20px #f26d21, 2px 2px 0 #000;
-            margin: 6px 0;
+        .end-screen .solution {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(87, 42, 124, 0.4);
+            border: 2px dashed #f26d21;
+            border-radius: 14px;
+            padding: 14px 22px;
+            color: #fff;
+            font-size: 15px;
+            letter-spacing: 1px;
         }
+        .end-screen .solution span { color: #f26d21; }
 
+        /* АДАПТИВ */
         @media (max-width: 600px) {
             .start-screen h1 { font-size: 22px; }
             .subtitle { font-size: 12px; }
@@ -322,15 +305,15 @@
             .controls-box .ctrl-title { font-size: 13px; }
             .controls-box .ctrl-line { font-size: 11px; }
             .btn { font-size: 14px; padding: 10px 20px; }
-            .question-text { font-size: 14px; }
-            .answer-btn { font-size: 13px; padding: 12px 14px; }
-            .top-info { font-size: 11px; }
-            .info-item { padding: 4px 6px; }
-            .end-screen h1 { font-size: 19px; }
+            .riddle-title { font-size: 15px; }
+            .riddle-text { font-size: 12px; padding: 14px 12px; }
+            .riddle-text .clue { font-size: 11px; }
+            .person-name { font-size: 13px; }
+            .costume-btn { font-size: 11px; padding: 8px 4px; }
+            .end-screen h1 { font-size: 18px; }
             .end-screen p { font-size: 13px; }
             .end-screen p.final-text { font-size: 14px; }
-            .end-screen .score-big { font-size: 34px; }
-            .dot { width: 12px; height: 12px; }
+            .end-screen .solution { font-size: 13px; padding: 12px 16px; }
         }
     </style>
 </head>
@@ -342,305 +325,240 @@
 
     <!-- СТАРТОВЫЙ ЭКРАН -->
     <div class="start-screen" id="start-screen">
-        <h1>Викторина по Хэллоуину</h1>
-        <p class="subtitle">10 вопросов нарастающей сложности</p>
+        <h1>Логическая Загадка</h1>
+        <p class="subtitle">Хэллоуинская ночь, три костюма — три друга</p>
         <div class="controls-box">
             <div class="ctrl-title">ПРАВИЛА</div>
-            <div class="ctrl-line"><span>1.</span> Всего 10 вопросов</div>
-            <div class="ctrl-line"><span>2.</span> У каждого вопроса разная сложность</div>
-            <div class="ctrl-line"><span>3.</span> Всего 3 сложности: лёгкая, средняя, сложная</div>
-            <div class="ctrl-line"><span>4.</span> Последний вопрос самый сложный</div>
-            <div class="ctrl-line"><span>5.</span> У всех вопросов только один правильный вариант</div>
+            <div class="ctrl-line"><span>1.</span> Прочитай загадку внимательно</div>
+            <div class="ctrl-line"><span>2.</span> Для каждого персонажа выбери костюм</div>
+            <div class="ctrl-line"><span>3.</span> Все костюмы разные</div>
+            <div class="ctrl-line"><span>4.</span> Нажми «Проверить» — узнаешь ответ</div>
         </div>
-        <button class="btn" onclick="startGame()">Начать викторину</button>
+        <button class="btn" onclick="startGame()">Начать загадку</button>
     </div>
 
     <!-- ИГРОВОЕ ПОЛЕ -->
     <div class="game-area" id="game-area">
-        <div class="top-info">
-            <div class="info-item">Вопрос: <b><span id="q-num">1</span>/10</b></div>
-            <div class="info-item">Правильных: <b><span id="score">0</span></b></div>
-        </div>
+        <div class="riddle-title">🎃 ЗАГАДКА 🎃</div>
 
-        <div class="progress-dots" id="progress-dots"></div>
+        <div class="riddle-text" id="riddle-text"></div>
 
-        <div class="difficulty" id="difficulty">ЛЁГКИЙ</div>
+        <div id="persons-container"></div>
 
-        <div class="question-box">
-            <div class="question-text" id="question-text">...</div>
-        </div>
+        <div class="hint-msg" id="hint-msg"></div>
 
-        <div class="answers" id="answers"></div>
-
-        <div class="next-btn-wrap">
-            <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">Дальше →</button>
+        <div style="display:flex; justify-content:center;">
+            <button class="btn" id="check-btn" onclick="checkAnswer()" disabled>Проверить</button>
         </div>
     </div>
 
     <!-- ФИНАЛЬНЫЙ ЭКРАН -->
     <div class="end-screen" id="end-screen">
-        <h1 id="end-title">ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ!</h1>
+        <h1 id="end-title">ПОЗДРАВЛЯЕМ, ТЫ РЕШИЛ (-А) ЗАГАДКУ!</h1>
         <p class="sub-text" id="end-sub">можешь спать спокойно... Пока...</p>
-        <div class="score-big" id="final-score">0/10</div>
+        <div class="solution" id="solution">
+            <div>🎃 Аня — <span>ведьма</span></div>
+            <div>🧛 Влад — <span>вампир</span></div>
+            <div>👻 Вика — <span>призрак</span></div>
+        </div>
         <p class="final-text" id="end-final">Не забудь отправить скрин в группу!</p>
     </div>
 
 </div>
 
 <script>
-    // ===== ВОПРОСЫ =====
-    // correct — индекс правильного ответа в исходном массиве answers.
-    // При отрисовке ответы перемешиваются, а правильный индекс пересчитывается.
-    const QUESTIONS = [
-        // ---- 3 ЛЁГКИХ ----
-        {
-            difficulty: 'easy',
-            question: 'Какое животное считается символом Хэллоуина и часто сопровождает ведьм?',
-            answers: ['Кошка', 'Собака', 'Сова'],
-            correct: 0
-        },
-        {
-            difficulty: 'easy',
-            question: 'Что дети говорят, когда стучат в двери на Хэллоуин?',
-            answers: ['Сладость или гадость!', 'С днём рождения!', 'Откройте, полиция!'],
-            correct: 0
-        },
-        {
-            difficulty: 'easy',
-            question: 'Какого числа отмечается Хэллоуин?',
-            answers: ['31 октября', '1 ноября', '30 сентября'],
-            correct: 0
-        },
-
-        // ---- 3 СРЕДНИХ ----
-        {
-            difficulty: 'medium',
-            question: 'Как называется традиционный фонарь из тыквы на Хэллоуин?',
-            answers: ['Фонарь Джека', 'Светильник Сэма', 'Тыква Мэри'],
-            correct: 0
-        },
-        {
-            difficulty: 'medium',
-            question: 'От какого древнего кельтского праздника произошёл Хэллоуин?',
-            answers: ['Самайн', 'Йоль', 'Белтейн'],
-            correct: 0
-        },
-        {
-            difficulty: 'medium',
-            question: 'Какое дерево традиционно ассоциируется с ведьмами и Хэллоуином?',
-            answers: ['Дуб', 'Берёза', 'Ива'],
-            correct: 0
-        },
-
-        // ---- 3 СЛОЖНЫХ ----
-        {
-            difficulty: 'hard',
-            question: 'Что, согласно кельтским поверьям, происходило в ночь Самайна с границей между мирами живых и мёртвых?',
-            answers: ['Она стиралась', 'Она становилась прочнее', 'Она перемещалась в другое место'],
-            correct: 0
-        },
-        {
-            difficulty: 'hard',
-            question: 'Из какого овоща изначально делали «фонари Джека» в Ирландии до переезда традиции в Америку?',
-            answers: ['Из репы и свёклы', 'Из капусты', 'Из картофеля'],
-            correct: 0
-        },
-        {
-            difficulty: 'hard',
-            question: 'Как называлась традиция в средневековой Европе, когда люди ходили от дома к дому и выпрашивали еду в обмен на молитвы за умерших?',
-            answers: ['Souling', 'Trick-or-treating', 'Guising'],
-            correct: 0
-        },
-
-        // ---- 1 САМЫЙ СЛОЖНЫЙ ----
-        {
-            difficulty: 'final',
-            question: 'Как в ирландском фольклоре звали кузнеца, который обманул дьявола и после смерти не попал ни в рай, ни в ад — отсюда и пошла традиция «фонаря Джека»?',
-            answers: ['Stingy Jack', 'Old Scratch', 'Jack O\'Lantern'],
-            correct: 0
-        }
+    // ===== ДАННЫЕ ЗАГАДКИ =====
+    const COSTUMES = [
+        { id: 'vampire', name: 'Вампир', emoji: '🧛' },
+        { id: 'ghost',   name: 'Призрак', emoji: '👻' },
+        { id: 'witch',   name: 'Ведьма', emoji: '🧙' }
     ];
 
-    let currentQ = 0;
-    let score = 0;
-    let answered = false;
-    let gameActive = false;
-    let shuffledCorrectIndex = 0;   // правильный индекс после перемешивания
-    let shuffledAnswers = [];        // перемешанные ответы текущего вопроса
+    const PERSONS = [
+        { id: 'anya', name: 'Аня',  correct: 'witch'   },  // Аня — ведьма
+        { id: 'vlad', name: 'Влад', correct: 'vampire' },  // Влад — вампир
+        { id: 'vika', name: 'Вика', correct: 'ghost'   }   // Вика — призрак
+    ];
 
-    // ===== ПЕРЕМЕШИВАНИЕ (Фишер-Йетс) =====
-    function shuffle(arr) {
-        const a = [...arr];
-        for (let i = a.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-    }
+    // Текущие выборы игрока: { anya: 'witch', vlad: null, vika: null }
+    let choices = {};
+    let gameActive = false;
 
     // ===== СТАРТ =====
     function startGame() {
-        currentQ = 0;
-        score = 0;
-        answered = false;
         gameActive = true;
+        choices = {};
+        PERSONS.forEach(p => choices[p.id] = null);
 
-        document.getElementById('score').textContent = '0';
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';
-        document.getElementById('end-title').classList.remove('lose');
         document.getElementById('game-area').style.display = 'flex';
 
-        buildDots();
-        renderQuestion();
+        renderRiddle();
+        renderPersons();
+        updateCheckButton();
     }
 
-    // ===== ТОЧКИ ПРОГРЕССА =====
-    function buildDots() {
-        const wrap = document.getElementById('progress-dots');
-        wrap.innerHTML = '';
-        for (let i = 0; i < QUESTIONS.length; i++) {
-            const dot = document.createElement('div');
-            dot.classList.add('dot');
-            dot.dataset.index = i;
-            wrap.appendChild(dot);
-        }
+    // ===== ОТРИСОВКА ЗАГАДКИ =====
+    function renderRiddle() {
+        const el = document.getElementById('riddle-text');
+        el.innerHTML = `
+            В ночь на Хэллоуин трое друзей — <span class="highlight">Аня</span>, 
+            <span class="highlight">Влад</span> и <span class="highlight">Вика</span> — 
+            надели костюмы: <span class="highlight">вампира</span>, 
+            <span class="highlight">призрака</span> и <span class="highlight">ведьмы</span>. 
+            Каждый выбрал ровно один костюм, все костюмы разные.
+            <span class="clue">1. Аня — не вампир и не призрак.</span>
+            <span class="clue">2. Влад — не призрак.</span>
+            <br><br><span class="highlight">Вопрос:</span> кто в каком костюме был?
+        `;
     }
 
-    function updateDots() {
-        const dots = document.querySelectorAll('.dot');
-        dots.forEach((dot, i) => {
-            dot.classList.remove('current');
-            if (i === currentQ) dot.classList.add('current');
+    // ===== ОТРИСОВКА СТРОК ПЕРСОНАЖЕЙ =====
+    function renderPersons() {
+        const container = document.getElementById('persons-container');
+        container.innerHTML = '';
+
+        PERSONS.forEach(p => {
+            const row = document.createElement('div');
+            row.classList.add('person-row');
+            row.dataset.personId = p.id;
+
+            const nameEl = document.createElement('div');
+            nameEl.classList.add('person-name');
+            nameEl.textContent = p.name;
+            row.appendChild(nameEl);
+
+            const opts = document.createElement('div');
+            opts.classList.add('costume-options');
+
+            COSTUMES.forEach(c => {
+                const btn = document.createElement('button');
+                btn.classList.add('costume-btn');
+                btn.textContent = c.emoji + ' ' + c.name;
+                btn.dataset.personId = p.id;
+                btn.dataset.costumeId = c.id;
+                if (choices[p.id] === c.id) btn.classList.add('selected');
+                btn.addEventListener('click', () => selectCostume(p.id, c.id, row));
+                opts.appendChild(btn);
+            });
+
+            row.appendChild(opts);
+            container.appendChild(row);
         });
     }
 
-    function markDot(index, isCorrect) {
-        const dot = document.querySelector(`.dot[data-index="${index}"]`);
-        if (!dot) return;
-        dot.classList.remove('current');
-        dot.classList.add(isCorrect ? 'correct' : 'wrong');
-    }
+    // ===== ВЫБОР КОСТЮМА =====
+    function selectCostume(personId, costumeId, row) {
+        if (!gameActive) return;
 
-    // ===== ОТРИСОВКА ВОПРОСА =====
-    function renderQuestion() {
-        const q = QUESTIONS[currentQ];
-        answered = false;
-
-        document.getElementById('q-num').textContent = (currentQ + 1);
-
-        // Сложность
-        const diffEl = document.getElementById('difficulty');
-        diffEl.className = 'difficulty';
-        if (q.difficulty === 'easy') {
-            diffEl.textContent = 'ЛЁГКИЙ';
-            diffEl.classList.add('easy');
-        } else if (q.difficulty === 'medium') {
-            diffEl.textContent = 'СРЕДНИЙ';
-            diffEl.classList.add('medium');
-        } else if (q.difficulty === 'hard') {
-            diffEl.textContent = 'СЛОЖНЫЙ';
-            diffEl.classList.add('hard');
-        } else {
-            diffEl.textContent = 'САМЫЙ СЛОЖНЫЙ';
-            diffEl.classList.add('final');
-        }
-
-        // Вопрос
-        document.getElementById('question-text').textContent = q.question;
-
-        // === ПЕРЕМЕШИВАЕМ ОТВЕТЫ ===
-        const correctText = q.answers[q.correct];
-        shuffledAnswers = shuffle(q.answers);
-        shuffledCorrectIndex = shuffledAnswers.indexOf(correctText);
-
-        // Отрисовка ответов
-        const answersEl = document.getElementById('answers');
-        answersEl.innerHTML = '';
-        shuffledAnswers.forEach((ans, i) => {
-            const btn = document.createElement('button');
-            btn.classList.add('answer-btn');
-            btn.textContent = ans;
-            btn.dataset.index = i;
-            btn.addEventListener('click', () => selectAnswer(i, btn));
-            answersEl.appendChild(btn);
+        // Если этот костюм уже выбран кем-то другим — снимаем у того
+        // (чтобы не было дублей: все костюмы разные)
+        PERSONS.forEach(p => {
+            if (p.id !== personId && choices[p.id] === costumeId) {
+                choices[p.id] = null;
+            }
         });
 
-        document.getElementById('next-btn').classList.remove('show');
-        updateDots();
+        choices[personId] = costumeId;
+
+        // Перерисовываем кнопки внутри строки
+        const btns = row.querySelectorAll('.costume-btn');
+        btns.forEach(b => {
+            b.classList.remove('selected', 'correct', 'wrong');
+            if (b.dataset.costumeId === costumeId) {
+                b.classList.add('selected');
+            }
+        });
+
+        // Если выбор снят у другого — надо обновить и его строку
+        document.querySelectorAll('.person-row').forEach(r => {
+            const pid = r.dataset.personId;
+            r.querySelectorAll('.costume-btn').forEach(b => {
+                b.classList.remove('selected', 'correct', 'wrong');
+                if (choices[pid] === b.dataset.costumeId) {
+                    b.classList.add('selected');
+                }
+            });
+        });
+
+        updateCheckButton();
     }
 
-    // ===== ВЫБОР ОТВЕТА =====
-    function selectAnswer(index, btn) {
-        if (answered || !gameActive) return;
-        answered = true;
+    // ===== АКТИВНОСТЬ КНОПКИ «ПРОВЕРИТЬ» =====
+    function updateCheckButton() {
+        const allChosen = PERSONS.every(p => choices[p.id] !== null);
+        document.getElementById('check-btn').disabled = !allChosen;
+    }
 
-        const isCorrect = index === shuffledCorrectIndex;
+    // ===== ПРОВЕРКА ОТВЕТА =====
+    function checkAnswer() {
+        if (!gameActive) return;
 
-        const allBtns = document.querySelectorAll('.answer-btn');
-        allBtns.forEach(b => b.disabled = true);
+        let allCorrect = true;
 
-        if (isCorrect) {
-            btn.classList.add('correct');
-            score++;
-            document.getElementById('score').textContent = score;
+        PERSONS.forEach(p => {
+            const row = document.querySelector(`.person-row[data-person-id="${p.id}"]`);
+            if (!row) return;
+            row.classList.remove('correct-row', 'wrong-row');
+
+            const userCostume = choices[p.id];
+            const isCorrect = userCostume === p.correct;
+
+            if (isCorrect) {
+                row.classList.add('correct-row');
+            } else {
+                row.classList.add('wrong-row');
+                allCorrect = false;
+            }
+
+            // Подсветка кнопок внутри строки
+            const btns = row.querySelectorAll('.costume-btn');
+            btns.forEach(b => {
+                b.classList.remove('correct', 'wrong');
+                b.disabled = true;
+                if (b.dataset.costumeId === p.correct) {
+                    b.classList.add('correct');        // правильный всегда зелёным
+                } else if (b.dataset.costumeId === userCostume) {
+                    b.classList.add('wrong');          // ошибочный выбор — красным
+                }
+            });
+        });
+
+        if (allCorrect) {
+            showHint('Всё верно!', 'good');
+            gameActive = false;
+            setTimeout(() => {
+                document.getElementById('game-area').style.display = 'none';
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000);
         } else {
-            btn.classList.add('wrong');
-            // Подсвечиваем правильный (с учётом перемешивания)
-            allBtns[shuffledCorrectIndex].classList.add('correct');
-        }
-
-        markDot(currentQ, isCorrect);
-
-        const nextBtn = document.getElementById('next-btn');
-        nextBtn.classList.add('show');
-        if (currentQ === QUESTIONS.length - 1) {
-            nextBtn.textContent = 'Результат →';
-        } else {
-            nextBtn.textContent = 'Дальше →';
+            showHint('Не всё верно — красным показаны ошибки', 'warn');
+            // через 2 секунды разрешаем попробовать снова
+            setTimeout(() => {
+                PERSONS.forEach(p => {
+                    const row = document.querySelector(`.person-row[data-person-id="${p.id}"]`);
+                    if (!row) return;
+                    row.classList.remove('correct-row', 'wrong-row');
+                    row.querySelectorAll('.costume-btn').forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('correct', 'wrong');
+                    });
+                });
+                gameActive = true;
+                updateCheckButton();
+            }, 2000);
         }
     }
 
-    // ===== СЛЕДУЮЩИЙ ВОПРОС =====
-    function nextQuestion() {
-        if (!answered) return;
-
-        if (currentQ < QUESTIONS.length - 1) {
-            currentQ++;
-            renderQuestion();
-        } else {
-            endGame();
-        }
-    }
-
-    // ===== ФИНАЛ =====
-    function endGame() {
-        gameActive = false;
-        document.getElementById('final-score').textContent = score + '/' + QUESTIONS.length;
-
-        const title = document.getElementById('end-title');
-        const sub = document.getElementById('end-sub');
-        const finalText = document.getElementById('end-final');
-
-        if (score === QUESTIONS.length) {
-            title.textContent = 'ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ ИДЕАЛЬНО!';
-            sub.textContent = 'можешь спать спокойно... Пока...';
-            finalText.textContent = 'Не забудь отправить скрин в группу!';
-        } else if (score >= 7) {
-            title.textContent = 'ПОЗДРАВЛЯЕМ, ТЫ ПРОШЁЛ (-А) ВИКТОРИНУ!';
-            sub.textContent = 'можешь спать спокойно... Пока...';
-            finalText.textContent = 'Не забудь отправить скрин в группу!';
-        } else {
-            title.textContent = 'ТЫ НЕ ПРОШЁЛ (-А) ВИКТОРИНУ...';
-            title.classList.add('lose');
-            sub.textContent = 'Попробуй ещё раз — теперь ты знаешь ответы!';
-            finalText.textContent = 'Обнови страницу и попробуй снова';
-        }
-
-        setTimeout(() => {
-            document.getElementById('game-area').style.display = 'none';
-            document.getElementById('end-screen').style.display = 'flex';
-        }, 500);
+    // ===== ПОДСКАЗКА =====
+    let hintTimeout = null;
+    function showHint(text, type) {
+        const el = document.getElementById('hint-msg');
+        el.textContent = text;
+        el.className = 'hint-msg ' + (type || '');
+        if (hintTimeout) clearTimeout(hintTimeout);
+        hintTimeout = setTimeout(() => { el.textContent = ''; }, 2500);
     }
 
     window.onload = () => {
