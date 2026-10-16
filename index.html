@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Проклятие Марины Вип Люкс</title>
+<title>Разбуди Игру</title>
 <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,6 +16,7 @@ body {
     padding: 10px;
     -webkit-tap-highlight-color: transparent;
     user-select: none; -webkit-user-select: none;
+    touch-action: manipulation;
 }
 
 #bg-spiral {
@@ -32,7 +33,7 @@ body {
     padding: 22px 18px;
     border-radius: 20px;
     box-shadow: 0 0 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(242,109,33,0.4);
-    max-width: 620px; width: 100%;
+    max-width: 560px; width: 100%;
     backdrop-filter: blur(6px);
     border: 3px solid #f26d21; z-index: 1;
     max-height: 96vh; overflow-y: auto;
@@ -40,7 +41,7 @@ body {
 }
 
 h1 {
-    color: #f26d21; font-size: 26px; margin-bottom: 18px;
+    color: #f26d21; font-size: 26px; margin-bottom: 6px;
     text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000;
     letter-spacing: 2px;
     animation: glow 3s ease-in-out infinite alternate;
@@ -50,75 +51,61 @@ h1 {
     to { text-shadow: 2px 2px 0 #572a7c, 4px 4px 0 #000, 0 0 25px #f26d21; }
 }
 
+.subtitle {
+    color: #ccc; font-size: 13px; letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
 .image-card {
     background: rgba(15, 2, 25, 0.85);
     border: 3px solid #f26d21;
     border-radius: 16px;
     padding: 10px;
     box-shadow: inset 0 0 20px rgba(242,109,33,0.2);
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 200px;
+    min-height: 220px;
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+.image-card.awake {
+    box-shadow: inset 0 0 30px rgba(255,80,0,0.6), 0 0 40px rgba(242,109,33,0.9);
+    transform: scale(1.02);
+    animation: shake 0.15s infinite;
+}
+@keyframes shake {
+    0%, 100% { transform: translate(0,0) scale(1.02); }
+    25% { transform: translate(-2px, 1px) scale(1.02); }
+    75% { transform: translate(2px, -1px) scale(1.02); }
 }
 .image-card img {
     max-width: 100%;
-    max-height: 55vh;
+    max-height: 45vh;
     border-radius: 10px;
     display: block;
 }
 
-.answer-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.input-label {
-    color: #fff;
-    font-size: 13px;
-    letter-spacing: 1px;
-}
-
-.input-field {
-    font-family: 'Russo One', sans-serif;
-    font-size: 22px;
-    text-align: center;
-    background: rgba(15, 2, 25, 0.9);
-    color: #f26d21;
-    border: 3px solid #f26d21;
-    border-radius: 12px;
-    padding: 12px 18px;
+.sleep-bar {
     width: 100%;
-    max-width: 340px;
-    outline: none;
-    transition: all 0.3s ease;
-    text-shadow: 0 0 10px rgba(242,109,33,0.7);
-    letter-spacing: 3px;
-    text-transform: uppercase;
+    height: 26px;
+    background: rgba(15, 2, 25, 0.9);
+    border: 3px solid #f26d21;
+    border-radius: 13px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+    margin-bottom: 10px;
 }
-.input-field:focus {
-    box-shadow: 0 0 25px rgba(242,109,33,0.7);
+.sleep-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #572a7c, #f26d21, #ffcc00, #fff);
+    transition: width 0.08s linear;
+    box-shadow: 0 0 15px #f26d21;
 }
-.input-field.correct {
-    border-color: #4caf50;
-    color: #4caf50;
-    text-shadow: 0 0 15px #4caf50;
-    box-shadow: 0 0 25px rgba(76,175,80,0.7);
-}
-.input-field.wrong {
-    border-color: #ff3333;
-    color: #ff5555;
-    text-shadow: 0 0 15px #ff3333;
-    box-shadow: 0 0 25px rgba(255,51,51,0.7);
-    animation: shake 0.4s ease;
-}
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-8px); }
-    75% { transform: translateX(8px); }
+.sleep-fill.hot {
+    box-shadow: 0 0 25px #ffcc00, 0 0 40px #f26d21;
 }
 
 .btn {
@@ -133,7 +120,8 @@ h1 {
     letter-spacing: 1px;
     transition: all 0.3s ease;
     text-shadow: 1px 1px 0 #000;
-    margin-top: 6px;
+    margin-top: 4px;
+    touch-action: manipulation;
 }
 .btn:hover {
     background: #f26d21;
@@ -144,11 +132,45 @@ h1 {
 }
 .btn:active { transform: scale(0.95); }
 
+.tap-flash {
+    position: fixed;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,204,0,0.9), rgba(242,109,33,0));
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: tapFlash 0.4s ease-out forwards;
+    z-index: 999;
+}
+@keyframes tapFlash {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+}
+
+.tap-counter {
+    position: fixed;
+    color: #ffcc00;
+    font-size: 14px;
+    pointer-events: none;
+    text-shadow: 0 0 10px #ffcc00, 1px 1px 0 #000;
+    transform: translate(-50%, 0);
+    animation: tapCounter 0.6s ease-out forwards;
+    z-index: 1000;
+}
+@keyframes tapCounter {
+    0% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -40px); }
+}
+.tap-counter.blocked {
+    color: #ff5555;
+    text-shadow: 0 0 10px #ff5555, 1px 1px 0 #000;
+}
+
 .hint-msg {
     min-height: 20px;
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 1px;
-    margin-top: 12px;
+    margin-top: 10px;
     color: #f26d21;
     text-shadow: 1px 1px 0 #000;
     transition: opacity 0.3s ease;
@@ -178,27 +200,48 @@ h1 {
     text-align: center;
 }
 .end-screen p.sub { color: #ccc; font-size: 13px; }
-.end-screen p.answer-big {
-    color: #f26d21;
-    font-size: 28px;
-    letter-spacing: 3px;
-    text-shadow: 0 0 20px #f26d21, 2px 2px 0 #000;
-    margin: 8px 0;
-}
 .end-screen p.final {
     color: #f26d21;
     font-size: 15px;
     text-shadow: 1px 1px 0 #000, 0 0 10px #f26d21;
 }
 
+.start-screen {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 16px; padding: 12px 8px;
+    animation: fadeIn 0.6s ease;
+}
+
+.controls-box {
+    background: rgba(87, 42, 124, 0.4);
+    border: 2px dashed #f26d21;
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    max-width: 460px;
+    text-align: left;
+}
+.controls-box .ctrl-title {
+    color: #f26d21; font-size: 15px;
+    letter-spacing: 1px; margin-bottom: 4px;
+    text-shadow: 1px 1px 0 #000;
+    text-align: center;
+}
+.controls-box .ctrl-line {
+    color: #fff; font-size: 12px;
+    line-height: 1.6; letter-spacing: 0.5px;
+}
+.controls-box .ctrl-line span { color: #f26d21; }
+
 @media (max-width: 600px) {
     h1 { font-size: 20px; }
-    .input-field { font-size: 18px; padding: 10px 14px; letter-spacing: 2px; }
-    .btn { font-size: 14px; padding: 10px 22px; }
-    .image-card img { max-height: 40vh; }
-    .end-screen h1 { font-size: 19px; }
-    .end-screen p { font-size: 13px; }
-    .end-screen p.answer-big { font-size: 22px; }
+    .subtitle { font-size: 11px; }
+    .image-card img { max-height: 35vh; }
+    .btn { font-size: 13px; padding: 10px 20px; }
+    .controls-box { padding: 10px 14px; }
+    .controls-box .ctrl-title { font-size: 13px; }
+    .controls-box .ctrl-line { font-size: 11px; }
+    .sleep-bar { height: 22px; }
 }
 </style>
 </head>
@@ -208,78 +251,274 @@ h1 {
 
 <div class="game-container" id="game-container">
 
-    <div id="main-screen">
-        <h1>Проклятие Марины Вип Люкс</h1>
+    <div class="start-screen" id="start-screen">
+        <h1>Разбуди Игру</h1>
+        <p class="subtitle">Тапай и ОРИ, чтобы разбудить тыкву</p>
+        <div class="controls-box">
+            <div class="ctrl-title">КАК ИГРАТЬ</div>
+            <div class="ctrl-line"><span>1.</span> Нажми «Начать игру»</div>
+            <div class="ctrl-line"><span>2.</span> Тапай — до 20% (+1% за тап)</div>
+            <div class="ctrl-line"><span>3.</span> ОРИ ГРОМКО — до 95%</div>
+            <div class="ctrl-line"><span>4.</span> Дойди до 100% — тыква проснётся</div>
+        </div>
+        <button class="btn" id="start-btn" type="button">Начать игру</button>
+        <div class="hint-msg" id="mic-hint"></div>
+    </div>
 
-        <div class="image-card">
-            <img src="https://i.postimg.cc/QdYKtXjy/66EA9550-09B0-4D2F-9AD0-7D9ADF207088.jpg" alt="Загадка">
+    <div id="game-screen" style="display:none;">
+        <h1>Разбуди Игру</h1>
+        <p class="subtitle">Тапай и ОРИ!</p>
+
+        <div class="image-card" id="image-card">
+            <img id="main-image" src="https://i.postimg.cc/4dKtwJcC/83D9FA9D-E798-4344-AFCA-A2B53597510D.png" alt="Спящая тыква">
         </div>
 
-        <div class="answer-area">
-            <div class="input-label">ВВЕДИ ОТВЕТ:</div>
-            <input type="text" class="input-field" id="answer-input" placeholder="..." autocomplete="off" spellcheck="false" maxlength="20">
-            <button class="btn" id="check-btn" onclick="checkAnswer()">Проверить</button>
+        <div class="sleep-bar">
+            <div class="sleep-fill" id="sleep-fill"></div>
         </div>
-
-        <div class="hint-msg" id="hint-msg"></div>
     </div>
 
     <div class="end-screen" id="end-screen">
-        <h1>ПОЗДРАВЛЯЕМ! 🎃</h1>
-        <p class="sub">Ты разгадал (-а) послание</p>
-        <p class="answer-big">MITI IS HERE</p>
+        <h1>ТЫКВА ПРОСНУЛАСЬ! 🎃</h1>
+        <p class="sub">Ты разбудил (-а) Игру!</p>
         <p class="final">Не забудь отправить скрин в группу!</p>
     </div>
 
 </div>
 
 <script>
-    const CORRECT_ANSWER = 'MITI IS HERE';
+    // ===== ПАРАМЕТРЫ =====
+    const IMAGE_SLEEPING = 'https://i.postimg.cc/4dKtwJcC/83D9FA9D-E798-4344-AFCA-A2B53597510D.png';
+    const IMAGE_AWAKE    = 'https://i.postimg.cc/QtR7yRQ6/033FCCDF-5AD3-433D-9C60-000C793E6C1A.png';
 
-    const input = document.getElementById('answer-input');
+    const DECAY_AFTER_TAP  = 3;
+    const DECAY_AFTER_YELL = 8;
+    const DECAY_NEUTRAL    = 3;
 
-    function checkAnswer() {
-        const raw = input.value.trim().replace(/\s+/g, ' ').toUpperCase();
+    const TAP_BOOST = 1;              // ← тап снова 1%
+    const TAP_MAX_TOTAL = 20;         // тапы дают максимум 20%
 
-        if (!raw) {
-            showHint('Введи ответ!', 'warn');
+    const MAX_LOUD_CAP = 95;
+    const LOUD_MULTIPLIER = 400;
+    const LOUD_THRESHOLD = 0.25;      // высокий порог — надо орать
+    const LOUD_FULL_AT = 0.55;
+
+    const ACTION_MEMORY_MS = 700;
+
+    let fireLevel = 0;
+    let tapContribution = 0;
+    let started = false;
+    let micOk = false;
+    let audioContext = null;
+    let analyser = null;
+    let micStream = null;
+    let micDataArray = null;
+    let currentLoudness = 0;
+    let lastTime = 0;
+    let awakeImageReady = false;
+
+    let lastAction = null;
+    let lastActionTime = 0;
+
+    (function preloadAwake() {
+        const img = new Image();
+        img.onload = () => { awakeImageReady = true; };
+        img.src = IMAGE_AWAKE;
+    })();
+
+    const startBtn = document.getElementById('start-btn');
+    startBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (started) return;
+
+        const micHint = document.getElementById('mic-hint');
+        micHint.textContent = 'Запрашиваем микрофон...';
+        micHint.className = 'hint-msg';
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioContext.state === 'suspended') await audioContext.resume();
+                const source = audioContext.createMediaStreamSource(micStream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512;
+                source.connect(analyser);
+                micDataArray = new Uint8Array(analyser.fftSize);
+                micOk = true;
+                micHint.textContent = '';
+            } catch (err) {
+                micOk = false;
+                micHint.textContent = 'Микрофон недоступен — играем тапами (макс 20%).';
+                micHint.className = 'hint-msg warn';
+                await new Promise(r => setTimeout(r, 800));
+            }
+        } else {
+            micOk = false;
+            micHint.textContent = 'Микрофон не поддерживается — играем тапами.';
+            micHint.className = 'hint-msg warn';
+            await new Promise(r => setTimeout(r, 800));
+        }
+
+        startGame();
+    });
+
+    function startGame() {
+        fireLevel = 0;
+        tapContribution = 0;
+        currentLoudness = 0;
+        started = true;
+        lastAction = null;
+        lastActionTime = 0;
+
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        document.getElementById('end-screen').style.display = 'none';
+        document.getElementById('image-card').classList.remove('awake');
+        document.getElementById('main-image').src = IMAGE_SLEEPING;
+
+        updateFireUI();
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop(now) {
+        if (!started) return;
+
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+
+        let gain = 0;
+        let yelling = false;
+
+        if (micOk && analyser) {
+            readMic();
+
+            if (currentLoudness > LOUD_THRESHOLD && fireLevel < MAX_LOUD_CAP) {
+                yelling = true;
+                const norm = Math.min(1,
+                    (currentLoudness - LOUD_THRESHOLD) / (LOUD_FULL_AT - LOUD_THRESHOLD));
+                gain = norm * LOUD_MULTIPLIER * dt;
+                if (fireLevel + gain > MAX_LOUD_CAP) gain = MAX_LOUD_CAP - fireLevel;
+            }
+        }
+
+        if (yelling) {
+            lastAction = 'yell';
+            lastActionTime = now;
+        }
+
+        let decayRate;
+        const sinceAction = now - lastActionTime;
+
+        if (lastAction && sinceAction < ACTION_MEMORY_MS) {
+            decayRate = (lastAction === 'yell') ? DECAY_AFTER_YELL : DECAY_AFTER_TAP;
+        } else {
+            decayRate = DECAY_NEUTRAL;
+        }
+
+        const decay = decayRate * dt;
+        fireLevel = Math.max(0, Math.min(100, fireLevel + gain - decay));
+
+        if (tapContribution > fireLevel) tapContribution = fireLevel;
+
+        updateFireUI();
+
+        if (fireLevel >= 100) {
+            wakeUp();
             return;
         }
 
-        if (raw === CORRECT_ANSWER) {
-            input.classList.remove('wrong');
-            input.classList.add('correct');
-            showHint('Верно!', 'good');
-            input.disabled = true;
-            document.getElementById('check-btn').disabled = true;
-
-            setTimeout(() => {
-                document.getElementById('main-screen').style.display = 'none';
-                document.getElementById('end-screen').style.display = 'flex';
-            }, 1000);
-        } else {
-            input.classList.remove('correct');
-            input.classList.add('wrong');
-            showHint('Неверно. Попробуй ещё раз', 'warn');
-            setTimeout(() => input.classList.remove('wrong'), 500);
-        }
+        requestAnimationFrame(gameLoop);
     }
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') checkAnswer();
-    });
+    function readMic() {
+        if (!analyser) return;
+        analyser.getByteTimeDomainData(micDataArray);
+        let sum = 0;
+        for (let i = 0; i < micDataArray.length; i++) {
+            const v = (micDataArray[i] - 128) / 128;
+            sum += v * v;
+        }
+        currentLoudness = Math.sqrt(sum / micDataArray.length);
+    }
 
-    input.addEventListener('input', () => {
-        input.classList.remove('wrong', 'correct');
-    });
+    function updateFireUI() {
+        const percent = Math.max(0, Math.min(100, fireLevel));
+        const fill = document.getElementById('sleep-fill');
+        fill.style.width = percent + '%';
+        if (percent >= 70) fill.classList.add('hot');
+        else fill.classList.remove('hot');
+    }
 
-    let hintTimeout = null;
-    function showHint(text, type) {
-        const el = document.getElementById('hint-msg');
-        el.textContent = text;
-        el.className = 'hint-msg ' + (type || '');
-        if (hintTimeout) clearTimeout(hintTimeout);
-        hintTimeout = setTimeout(() => { el.textContent = ''; }, 2500);
+    let lastTap = 0;
+    function onAnyTap(x, y) {
+        if (!started) return;
+        if (fireLevel >= 100) return;
+        const now = performance.now();
+        if (now - lastTap < 40) return;
+        lastTap = now;
+
+        const canTap = tapContribution < TAP_MAX_TOTAL;
+        if (canTap) {
+            const remaining = TAP_MAX_TOTAL - tapContribution;
+            const add = Math.min(TAP_BOOST, remaining);
+            tapContribution += add;
+            fireLevel = Math.min(100, fireLevel + add);
+            updateFireUI();
+        }
+
+        lastAction = 'tap';
+        lastActionTime = now;
+
+        const flash = document.createElement('div');
+        flash.className = 'tap-flash';
+        flash.style.left = x + 'px';
+        flash.style.top = y + 'px';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 400);
+
+        const counter = document.createElement('div');
+        counter.className = 'tap-counter' + (canTap ? '' : ' blocked');
+        counter.textContent = canTap ? '+1%' : '×';
+        counter.style.left = x + 'px';
+        counter.style.top = (y - 30) + 'px';
+        document.body.appendChild(counter);
+        setTimeout(() => counter.remove(), 600);
+
+        if (fireLevel >= 100) wakeUp();
+    }
+
+    document.addEventListener('click', (e) => onAnyTap(e.clientX, e.clientY));
+    document.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        if (t) onAnyTap(t.clientX, t.clientY);
+    }, { passive: true });
+
+    function wakeUp() {
+        if (!started) return;
+        started = false;
+
+        const img = document.getElementById('main-image');
+        const changeImage = () => {
+            img.src = IMAGE_AWAKE;
+            document.getElementById('image-card').classList.add('awake');
+        };
+
+        if (awakeImageReady) changeImage();
+        else {
+            const pre = new Image();
+            pre.onload = changeImage;
+            pre.onerror = changeImage;
+            pre.src = IMAGE_AWAKE;
+        }
+
+        if (micStream) micStream.getTracks().forEach(t => t.stop());
+
+        setTimeout(() => {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'flex';
+        }, 1400);
     }
 </script>
 
